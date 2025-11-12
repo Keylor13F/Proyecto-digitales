@@ -1,77 +1,44 @@
 #!/bin/bash
+# ====================================================
+# Script para compilar programas RISC-V en Linux
+# Autor: (tu nombre)
+# Descripción:
+#   - Compila burbuja.cpp (C++)
+#   - Compila SNAKEfinal.s (ensamblador)
+#   - Genera archivos .elf y .txt con código máquina
+# ====================================================
 
-# -----------------------------------------------------
-# Script para compilar el programa de Burbuja
-# para la arquitectura nativa (x86_64) Y para RISC-V
-# -----------------------------------------------------
+# ======== Compilar burbuja.cpp ========
+echo "?? Compilando programa en C++ (burbuja.cpp)..."
 
-# --- Variables ---
-CPP_FILE="burbuja.cpp"
+/mnt/vol_NFS_rh003/Est_Digitales_2S_2025/materiales/tools_riscv/bin/riscv32-unknown-elf-g++ -march=rv32im -mabi=ilp32 -o burbuja.elf burbuja.cpp
 
-# Compilador nativo
-NATIVE_COMPILER="g++"
-EXEC_NATIVE="burbuja_ejecutable"
-ASM_NATIVE="burbuja_x86.s"
 
-# Compilador cruzado RISC-V
-# (Prueba también riscv64-linux-gnu-g++ si este no funciona)
-RISCV_COMPILER="riscv64-unknown-elf-g++"
-ASM_RISCV="burbuja_riscv.s"
+# Generar el archivo con el código máquina en texto (hexadecimal)
+echo "?? Generando burbuja_hex.txt..."
+/mnt/vol_NFS_rh003/Est_Digitales_2S_2025/materiales/tools_riscv/bin/riscv32-unknown-elf-objdump -d burbuja.elf > burbuja_hex.txt
 
-# --- Verificación de Archivo Fuente ---
-echo "Verificando que $CPP_FILE exista..."
-if [ ! -f "$CPP_FILE" ]; then
-    echo "Error: ¡No se encuentra el archivo $CPP_FILE!"
-    echo "Por favor, guarda el código C++ primero."
-    exit 1
-fi
+echo "? burbuja.cpp compilado y convertido a código máquina (burbuja_hex.txt)"
 
-# --- Proceso Nativo (x86_64) ---
+# ======== Compilar SNAKEfinal.s ========
 echo ""
-echo "--- Proceso Nativo (x86_64) ---"
-echo "1. Compilando C++ a ejecutable nativo..."
-$NATIVE_COMPILER -Wall -std=c++17 $CPP_FILE -o $EXEC_NATIVE
-if [ $? -eq 0 ]; then
-    echo "   Éxito: Se creó $EXEC_NATIVE"
-else
-    echo "   Error: Falló la compilación nativa"
-    exit 1
-fi
+echo "?? Compilando programa ensamblador (SNAKEfinal.s)..."
 
-echo "2. Generando ensamblador nativo ($ASM_NATIVE)..."
-$NATIVE_COMPILER -Wall -std=c++17 -S -O2 $CPP_FILE -o $ASM_NATIVE
-echo "   Éxito: Se generó $ASM_NATIVE"
+# Ensamblar y enlazar (requiere constantes.s en la misma carpeta)
+ /mnt/vol_NFS_rh003/Est_Digitales_2S_2025/materiales/tools_riscv/bin/riscv32-unknown-elf-as -march=rv32im -mabi=ilp32 -o snake.o SNAKEfinal.s
+ /mnt/vol_NFS_rh003/Est_Digitales_2S_2025/materiales/tools_riscv/bin/riscv32-unknown-elf-as -march=rv32im -mabi=ilp32 -o const.o constantes.s
+ /mnt/vol_NFS_rh003/Est_Digitales_2S_2025/materiales/tools_riscv/bin/riscv32-unknown-elf-ld -o snake.elf snake.o const.o
 
+# Generar el archivo de código máquina
+echo "?? Generando snake_hex.txt..."
+ /mnt/vol_NFS_rh003/Est_Digitales_2S_2025/materiales/tools_riscv/bin/riscv32-unknown-elf-objdump -d snake.elf > snake_hex.txt
 
-# --- Proceso RISC-V ---
+echo "? SNAKEfinal.s ensamblado y convertido a código máquina (snake_hex.txt)"
 echo ""
-echo "--- Proceso de Compilación Cruzada (RISC-V) ---"
-
-# 1. Comprobar si el compilador cruzado existe
-if ! command -v $RISCV_COMPILER &> /dev/null
-then
-    echo "¡AVISO! El compilador cruzado $RISCV_COMPILER no se encontró."
-    echo "Omitiendo la generación de ensamblador RISC-V."
-    echo "Por favor, instálalo (ej: sudo apt install g++-riscv64-unknown-elf)"
-    exit 0
-fi
-
-# 2. Generar ensamblador RISC-V
-echo "1. Generando ensamblador RISC-V ($ASM_RISCV)..."
-$RISCV_COMPILER -Wall -std=c++17 -S -O2 $CPP_FILE -o $ASM_RISCV
-if [ $? -eq 0 ]; then
-    echo "   Éxito: Se generó $ASM_RISCV"
-else
-    echo "   Error: Falló la generación de ensamblador RISC-V"
-    exit 1
-fi
-
+echo "?? Proceso completado."
 echo ""
-echo "¡Compilación completada!"
-echo "Puedes ejecutar el programa nativo con: ./$EXEC_NATIVE"
-echo "Puedes inspeccionar el ensamblador RISC-V en: $ASM_RISCV"
 
-# --- NOTA IMPORTANTE ---
-echo ""
-echo "Nota: El archivo $ASM_RISCV contiene código ensamblador RISC-V."
-echo "No puedes ejecutarlo en tu PC, pero puedes analizarlo o usarlo en un simulador RISC-V (como QEMU)."
+# Mostrar verificación rápida
+echo "?? Archivos generados:"
+ls -lh burbuja* snake*
+
