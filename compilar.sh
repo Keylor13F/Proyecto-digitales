@@ -21,7 +21,7 @@ echo ""
 
 echo "=== Compilando SNAKEfinal.s + constantes.s ==="
 
-$TOOLS/riscv32-unknown-elf-as -march=rv32im -mabi=ilp32 -o snake.o SNAKEfinal.s
+$TOOLS/riscv32-unknown-elf-as -march=rv32im -mabi=ilp32 -o snake.o MainSnake.s
 $TOOLS/riscv32-unknown-elf-as -march=rv32im -mabi=ilp32 -o const.o constantes.s
 
 $TOOLS/riscv32-unknown-elf-ld -o snake.elf snake.o const.o
